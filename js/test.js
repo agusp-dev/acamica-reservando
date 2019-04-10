@@ -377,3 +377,149 @@ describe('Test de obtener restaurantes', function() {
         expect(restaurantesFiltrados).to.eql(restaurantesDePizzaDeLondres12Hs);
     });
 });
+
+//Test de reservas
+
+describe('Test de Reservas', function() {
+
+    it('Dado un objeto reserva, se espera que el mismo cuente con las 4 propiedades pedidas en los requerimientos.', function() {
+        var reserva = new Reserva();
+        expect(reserva).to.have.property('horario');
+        expect(reserva).to.have.property('cantidadPersonas');
+        expect(reserva).to.have.property('precioXpersona');
+        expect(reserva).to.have.property('codigoDescuento');
+    });
+
+    it('Dado un objeto reserva, se espera que la funcion "precioBase" calcule correctamente su precio base', function() {
+        var reserva = new Reserva(Date(Date.now()), 2, 1000, '');
+        var pBase = 2 * 1000;
+        expect(reserva.precioBase()).to.equal(pBase);
+    });
+
+    /**
+     * Pruebas de precio final sin descuentos ni adicionales
+     */
+    it('Con una reserva para 2 personas, sin un codigo de descuento, y habiendo hecho la reserva un dia Miercoles a las 12:05 hs, se espera que la funcion "precioFinal" calcule el monto sin realizar descuentos ni agregados.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 3, 12, 5), 2, 1000, '');
+        var pFinal = reserva.precioBase();
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    /**
+     * Pruebas de precio final sin descuentos pero si con adicionales
+     */
+
+    it('Con una reserva para 2 personas, sin un codigo de descuento, y habiendo hecho la reserva un dia Jueves a las 20:30 hs, se espera que la funcion "precioFinal" calcule el monto sin realizar descuentos y agregue un monto adicional del 5%.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 4, 20, 30), 2, 1000, '');
+        var pFinal = reserva.precioBase() + calcularPorcentaje(reserva.precioBase(), 5);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 2 personas, sin un codigo de descuento, y habiendo hecho la reserva un dia Sabado a las 10:30 hs, se espera que la funcion "precioFinal" calcule el monto sin realizar descuentos y agregue un monto adicional del 10%.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 6, 10, 30), 2, 1000, '');
+        var pFinal = reserva.precioBase() + calcularPorcentaje(reserva.precioBase(), 10);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 2 personas, sin un codigo de descuento, y habiendo hecho la reserva un dia Sabado a las 13:15 hs, se espera que la funcion "precioFinal" calcule el monto sin realizar descuentos y agregue un monto adicional del 5% + el 10%.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 6, 13, 15), 2, 1000, '');
+        var pFinal = reserva.precioBase() + calcularPorcentaje(reserva.precioBase(), 15);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    /**
+     * Pruebas de precio final con descuentos pero sin adicionales
+     */
+
+    it('Con una reserva para 2 personas, con el codigo de descuento "DES15", y habiendo hecho la reserva un dia Martes a las 00:05 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 15% y que no sume adicionales.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 2, 0, 5), 2, 1000, 'DES15');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 15);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 2 personas, con el codigo de descuento "DES200", y habiendo hecho la reserva un dia Martes a las 03:15 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del $200 y que no sume adicionales.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 9, 3, 15), 2, 1000, 'DES200');
+        var pFinal = reserva.precioBase() - 200;
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 2 personas, con el codigo de descuento "DES1", y habiendo hecho la reserva un dia Lunes a las 03:50 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del valor de una persona y que no sume adicionales.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 8, 3, 50), 2, 1000, 'DES1');
+        var pFinal = reserva.precioBase() - reserva.precioXpersona;
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+
+
+    it('Con una reserva para 4 personas, sin codigo de descuento, y habiendo hecho la reserva un dia Lunes a las 00:25 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 5% y que no sume adicionales.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 15, 0, 25), 4, 1000, '');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 5);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 8 personas, sin codigo de descuento, y habiendo hecho la reserva un dia Martes a las 03:30 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 10% y que no sume adicionales.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 9, 3, 30), 8, 1000, '');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 10);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 12 personas, sin codigo de descuento, y habiendo hecho la reserva un dia Lunes a las 08:00 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 15% y que no sume adicionales.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 15, 8, 0), 12, 1000, '');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 15);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+
+
+    it('Con una reserva para 4 personas, con el codigo "DES15", y habiendo hecho la reserva un dia Lunes a las 05:25 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 5% + 15% y que no sume adicionales.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 15, 5, 25), 4, 1000, 'DES15');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 20);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 7 personas, con el codigo "DES200", y habiendo hecho la reserva un dia Jueves a las 09:45 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 10% + $200 y que no sume adicionales.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 11, 9, 45), 7, 1000, 'DES200');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 10) - 200;
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 10 personas, con el codigo "DES1", y habiendo hecho la reserva un dia Miercoles a las 17:45 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 15% + descuento del precio de una persona, y que no sume adicionales.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 17, 17, 45), 10, 1000, 'DES1');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 15) - reserva.precioXpersona;
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+
+    /**
+     * Pruebas de precio final con descuentos y con adicionales
+     */
+
+    it('Con una reserva para 5 personas, sin codigo de descuento, y habiendo hecho la reserva un dia Jueves a las 20:45 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 5% y agregue un monto adicional del 5%.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 18, 20, 45), 5, 1000, '');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 5) + calcularPorcentaje(reserva.precioBase(), 5);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 8 personas, sin codigo de descuento, y habiendo hecho la reserva un dia Domingo a las 13:58 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 10% y agregue un monto adicional del 5% + 10%.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 14, 13, 58), 8, 1000, '');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 10) + calcularPorcentaje(reserva.precioBase(), 15);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 9 personas, con codigo "DES15", y habiendo hecho la reserva un dia Martes a las 20:10 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 15% + 15% y agregue un monto adicional del 5%.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 23, 20, 10), 9, 1000, 'DES15');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 30) + calcularPorcentaje(reserva.precioBase(), 5);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+    it('Con una reserva para 12 personas, con codigo "DES1", y habiendo hecho la reserva un dia Sabado a las 13:20 hs, se espera que la funcion "precioFinal" calcule el monto realizando un descuento del 15% + el descuento equivalente a una persona, y agregue un monto adicional del 10% + 5%.', function() {
+        var reserva = new Reserva(new Date(2019, 6, 27, 13, 20), 12, 1000, 'DES1');
+        var pFinal = reserva.precioBase() - calcularPorcentaje(reserva.precioBase(), 15) - reserva.precioXpersona + calcularPorcentaje(reserva.precioBase(), 15);
+        expect(reserva.precioFinal()).to.equal(pFinal);
+    });
+
+});
+
+var calcularPorcentaje = function(monto, porcentaje) {
+    return (porcentaje * monto /100);
+}
